@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle" Version="5.6.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="8.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.1" />
+	  <PackageReference Include="EPPlus" Version="4.5.3.2" />
+	  <PackageReference Include="FreeSpire.XLS" Version="14.2.0" />
+	  <PackageReference Include="PdfSharp" Version="6.1.1" />
+	  <PackageReference Include="PdfSharp.MigraDoc" Version="2.0.1" />
+	  <PackageReference Include="QuestPDF" Version="2025.4.3" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+	  
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Documents\TrackLists\" />
+  </ItemGroup>
+
+  
+
+</Project>
