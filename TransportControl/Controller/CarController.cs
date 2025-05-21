@@ -17,6 +17,16 @@ namespace TransportControl.Controller
             {
                 _carService = carService;
             }
+            [HttpGet]
+            [SwaggerOperation(Summary = "Get all car")]
+            [SwaggerResponse(200, "Success", typeof(CarDto))]
+            [SwaggerResponse(404, "Car not found")]
+            public async Task<IActionResult> GetAllCars()
+            {
+                var cars = await _carService.GetAllCarsAsync();
+                return Ok(cars);
+
+            }
 
             [HttpGet("{id}")]
             [SwaggerOperation(Summary = "Get car by ID")]

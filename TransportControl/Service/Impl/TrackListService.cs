@@ -12,6 +12,62 @@ namespace TransportControl.Service.Impl
         {
             _context = context;
         }
+        public async Task<List<TrackListDto>> GetAllTrackListAsync()
+        {
+            var trackLists = await _context.TrackLists
+                .Include(t => t.Car)
+                .Include(t => t.Driver)
+                .Include(t => t.TrackPoints)
+                .ToListAsync();
+
+            return trackLists.Select(trackList => new TrackListDto
+            {
+                Id = trackList.Id,
+                RemainingFuelStart = trackList.RemainingFuelStart,
+                RemainingFuelEnd = trackList.RemainingFuelEnd,
+                StartTime = trackList.StartTime,
+                EndTime = trackList.EndTime,
+                OdometrStart = trackList.OdometrStart,
+                OdometrEnd = trackList.OdometrEnd,
+                ValidityPeriodStart = trackList.ValidityPeriodStart,
+                ValidityPeriodEnd = trackList.ValidityPeriodEnd,
+                PersonnelNumber = trackList.PersonnelNumber,
+                Car = trackList.Car != null ? new CarDto
+                {
+                    Id = trackList.Car.Id,
+                    CarName = trackList.Car.CarName,
+                    CarVin = trackList.Car.CarVin,
+                    CarNumber = trackList.Car.CarNumber,
+                    CarFuelType = trackList.Car.CarFuelType,
+                    CarCategory = trackList.Car.CarCategory,
+                    CarFuelUsing = trackList.Car.CarFuelUsing,
+                    CarOdometr = trackList.Car.CarOdometr,
+                    StartInsurance = trackList.Car.StartInsurance,
+                    EndInsurance = trackList.Car.EndInsurance,
+                    PersonnelNumber = trackList.Car.PersonnelNumber
+                } : null,
+                Driver = trackList.Driver != null ? new DriverDto
+                {
+                    Id = trackList.Driver.Id,
+                    DriverName = trackList.Driver.DriverName,
+                    DriverCategory = trackList.Driver.DriverCategory,
+                    PersonnelNumber = trackList.Driver.PersonnelNumber
+                } : null,
+                TrackPoints = trackList.TrackPoints?.Select(tp => new TrackPointDto
+                {
+                    Id = tp.Id,
+                    NumberPoint = tp.NumderPoint,
+                    CustomerCode = tp.CustomerCode,
+                    StartPointName = tp.StartPointName,
+                    EndPointName = tp.EndPointName,
+                    StartPointTime = tp.StartPointTime,
+                    EndPointTime = tp.EndPointTime,
+                    DistanceTraveled = tp.DistanceTraveled,
+                    PersonnelNumber = tp.PersonnelNumber,
+                    TrackListId = tp.TrackListId
+                }).ToList() ?? new List<TrackPointDto>()
+            }).ToList();
+        }
 
         public async Task<List<TrackList>> TracklistAsync()
         {
@@ -101,13 +157,7 @@ namespace TransportControl.Service.Impl
             await _context.SaveChangesAsync();
             return trackList;
         }
-        /*         
-             {
-               "trackListId": "a5ed166c-188e-4e95-9ce2-2a3d43bbdbc4",
-               "driverId": "c32b9785-4cae-4ab4-ab47-bca938f210b9"
-             }
-         */
-
+        
         public async Task<TrackList> AddCarToTrackListAsync(AddCarToTrackListDto dto)
         {
             var trackList = await _context.TrackLists.FirstOrDefaultAsync(t => t.Id == dto.TrackListId);
@@ -136,7 +186,10 @@ namespace TransportControl.Service.Impl
             if (trackList == null || driver == null)
                 throw new InvalidOperationException("Not found");
 
-
+            if (trackList.Car == null)
+            {
+                throw new InvalidOperationException("У путевого листа не указан автомобиль");
+            }
             if (trackList.Car.CarCategory != driver.DriverCategory)
             {
                 throw new InvalidOperationException("Водитель не имеет права управлять данным транспортным средством");
@@ -179,6 +232,8 @@ namespace TransportControl.Service.Impl
                 .Include(t => t.TrackPoints)
                 .FirstOrDefaultAsync(t => t.Id == closeDto.TrackListId);
 
+            var car = await _context.Cars.FirstOrDefaultAsync(c => c.Id == trackList.CarId);
+
             if (trackList == null)
                 throw new InvalidOperationException("Not found");
 
@@ -186,13 +241,14 @@ namespace TransportControl.Service.Impl
             var totalDistance = trackList.TrackPoints.Sum(tp => tp.DistanceTraveled);
             if (trackList.OdometrStart + totalDistance != closeDto.OdometrValue)
             {
-                throw new InvalidOperationException("не соответствие с Пройденой дистанцией");
+                throw new InvalidOperationException("Не соответствие с Пройденой дистанцией");
             }
 
             trackList.OdometrEnd = trackList.OdometrStart + totalDistance;
             trackList.RemainingFuelEnd = closeDto.FuelRemainder;
             trackList.EndTime = closeDto.ReturnTime;
-                      
+            car.CarOdometr = (int)(trackList.OdometrStart + totalDistance);
+
 
             await _context.SaveChangesAsync();
             return trackList;

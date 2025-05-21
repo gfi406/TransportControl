@@ -6,6 +6,7 @@ namespace TransportControl.Service
 {
     public interface IDriverService
     {
+        public Task<List<DriverDto>> GetAllDriversAsync();
         public  Task<DriverDto?> GetDriverByIdAsync(Guid id);
         public Task<Driver> CreateDriverAsync(CreateDriverDto dto);
         public  Task<bool> UpdateDriverAsync(Guid id, DriverDto dto);

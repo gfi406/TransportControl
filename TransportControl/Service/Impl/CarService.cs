@@ -12,6 +12,29 @@ namespace TransportControl.Service.Impl
         {
             _context = context;
         }
+        public async Task<List<CarDto>> GetAllCarsAsync()
+        {
+            var cars = await _context.Cars
+                    .Include(c => c.TrackLists)
+                    .ToListAsync();
+
+            return cars.Select(c => new CarDto
+            {
+                Id = c.Id,
+                CarName = c.CarName,
+                CarVin = c.CarVin,
+                CarNumber = c.CarNumber,
+                CarCategory = c.CarCategory,
+                CarFuelType = c.CarFuelType,
+                CarFuelUsing = c.CarFuelUsing,
+                CarOdometr = c.CarOdometr,
+                StartInsurance = c.StartInsurance,
+                EndInsurance = c.EndInsurance,
+                PersonnelNumber = c.PersonnelNumber                
+            }).ToList();
+
+
+        }
 
         public async Task<CarDto?> GetCarByIdAsync(Guid id)
         {

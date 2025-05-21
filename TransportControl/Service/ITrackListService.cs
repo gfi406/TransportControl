@@ -5,6 +5,7 @@ namespace TransportControl.Service
 {
     public interface ITrackListService
     {
+        public Task<List<TrackListDto>> GetAllTrackListAsync();
         public  Task<TrackListDto?> GetTrackListByIdAsync(Guid id);
         public  Task<TrackList> CreateTrackListAsync(CreateTrackListDto dto);
         public  Task<bool> UpdateTrackListAsync(Guid id, TrackListDto dto);

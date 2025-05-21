@@ -15,7 +15,19 @@ namespace TransportControl.Controllers
             {
                 _driverService = driverService;
             }
-        
+
+            [HttpGet]
+            [SwaggerOperation(Summary = "Get all driver")]
+            [SwaggerResponse(200, "Success", typeof(DriverDto))]
+            [SwaggerResponse(404, "Driver not found")]
+            public async Task<IActionResult> GetAllDrivers()
+            {
+            
+                var drivers = await _driverService.GetAllDriversAsync();
+                return Ok(drivers);           
+            
+            }
+
             [HttpGet("{id}")]
             [SwaggerOperation(Summary = "Get driver by ID")]
             [SwaggerResponse(200, "Success", typeof(DriverDto))]

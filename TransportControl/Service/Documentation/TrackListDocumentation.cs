@@ -47,21 +47,21 @@ namespace TransportControl.Service.Documentation
                 worksheet.Cells["A22"].Value = "дистанции СЦБ Окт.Д.И.";
                 worksheet.Cells["R8"].Value = "ОАО 'РЖД' г.Москва ул. Новая Басманная, д.2 ";
 
-                // Заполнение второй страницы маршрутные точки
+                
                 var routeWorksheet = package.Workbook.Worksheets[1];
-                int row = 5; // Начальная строка для данных
+                int row = 5; 
 
                 foreach (var point in model.TrackPoints ?? Enumerable.Empty<TrackPointDto>())
                 {
-                    routeWorksheet.Cells[row, 2].Value = point.NumberPoint; // Номер по порядку
-                    routeWorksheet.Cells[row, 3].Value = point.CustomerCode; // Код заказчика
-                    routeWorksheet.Cells[row, 5].Value = point.StartPointName; // Место отправления
-                    routeWorksheet.Cells[row, 8].Value = point.EndPointName; // Место назначения
-                    routeWorksheet.Cells[row, 10].Value = point.StartPointTime?.ToString("HH"); // Час выезда
-                    routeWorksheet.Cells[row, 12].Value = point.StartPointTime?.ToString("mm"); // Минуты выезда
-                    routeWorksheet.Cells[row, 13].Value = point.EndPointTime?.ToString("HH"); // Час возвращения
-                    routeWorksheet.Cells[row, 14].Value = point.EndPointTime?.ToString("mm"); // Минуты возвращения
-                    routeWorksheet.Cells[row, 15].Value = point.DistanceTraveled; // Пройдено км
+                    routeWorksheet.Cells[row, 2].Value = point.NumberPoint; 
+                    routeWorksheet.Cells[row, 3].Value = point.CustomerCode; 
+                    routeWorksheet.Cells[row, 5].Value = point.StartPointName; 
+                    routeWorksheet.Cells[row, 8].Value = point.EndPointName; 
+                    routeWorksheet.Cells[row, 10].Value = point.StartPointTime?.ToString("HH"); 
+                    routeWorksheet.Cells[row, 12].Value = point.StartPointTime?.ToString("mm"); 
+                    routeWorksheet.Cells[row, 13].Value = point.EndPointTime?.ToString("HH"); 
+                    routeWorksheet.Cells[row, 14].Value = point.EndPointTime?.ToString("mm"); 
+                    routeWorksheet.Cells[row, 15].Value = point.DistanceTraveled; 
 
                     row++;
                     if (row > 25) break;
@@ -72,7 +72,7 @@ namespace TransportControl.Service.Documentation
         }
     }
 
-    // Конвертер Excel в PDF
+   
     public static class ExcelToPdfConverter
     {
         public static void ConvertExcelToPdf(string excelPath, string pdfPath)
@@ -82,11 +82,9 @@ namespace TransportControl.Service.Documentation
 
             foreach (Worksheet sheet in workbook.Worksheets)
             {
-                // Ориентация и формат
                 sheet.PageSetup.PaperSize = PaperSizeType.PaperA4;
                 sheet.PageSetup.Orientation = PageOrientationType.Landscape;
 
-                // Уместить весь лист на одной странице
                 sheet.PageSetup.FitToPagesWide = 1;
                 sheet.PageSetup.FitToPagesTall = 1;
             }
@@ -95,7 +93,6 @@ namespace TransportControl.Service.Documentation
         }
     }
 
-    // Сервис документации путевого листа
     public class TrackListDocumentation
     {
         private readonly ITrackListService _trackListService;
@@ -115,7 +112,6 @@ namespace TransportControl.Service.Documentation
             string outputExcelPath,
             string outputPdfPath)
         {
-            // 1. Получаем путевой лист по ID
             var trackListDto = await _trackListService.GetTrackListByIdAsync(trackListId);
 
             if (trackListDto == null)
@@ -123,15 +119,12 @@ namespace TransportControl.Service.Documentation
                 throw new InvalidOperationException($"Путевой лист с ID {trackListId} не найден.");
             }
 
-            // 2. Генерируем Excel
             _excelGenerator.FillExcelTemplate(templatePath, outputExcelPath, trackListDto);
 
-            // 3. Конвертируем Excel в PDF
             ExcelToPdfConverter.ConvertExcelToPdf(outputExcelPath, outputPdfPath);
         }
     }
 
-    // Генератор документации путевого листа
     public class TrackListDocumentationGenerator
     {
         private readonly IServiceProvider _serviceProvider;
@@ -141,14 +134,12 @@ namespace TransportControl.Service.Documentation
             _serviceProvider = serviceProvider;
         }
 
-        // Генерация документации из JSON-файла
         public async Task GenerateDocumentationFromJsonAsync(
             string jsonFilePath,
             string templatePath,
             string outputExcelPath,
             string outputPdfPath)
         {
-            // 1. Читаем и десериализуем JSON
             var json = await File.ReadAllTextAsync(jsonFilePath, Encoding.UTF8);
             var options = new JsonSerializerOptions
             {
@@ -163,14 +154,12 @@ namespace TransportControl.Service.Documentation
                 throw new InvalidOperationException("Не удалось десериализовать путевой лист из JSON");
             }
 
-            // 2. Создаем путевой лист в базе данных
             using var scope = _serviceProvider.CreateScope();
             var trackListService = scope.ServiceProvider.GetRequiredService<TrackListService>();
             var documentationService = scope.ServiceProvider.GetRequiredService<TrackListDocumentation>();
 
             var createdTrackList = await trackListService.CreateTrackListAsync(model);
 
-            // 3. Генерируем документацию для созданного путевого листа
             await documentationService.GenerateTrackListDocumentationAsync(
                 createdTrackList.Id,
                 templatePath,
@@ -179,7 +168,6 @@ namespace TransportControl.Service.Documentation
             );
         }
 
-        // Генерация документации для существующего путевого листа
         public async Task GenerateDocumentationForExistingTrackListAsync(
             Guid trackListId,
             string templatePath,

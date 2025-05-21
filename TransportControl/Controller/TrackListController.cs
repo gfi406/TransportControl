@@ -18,6 +18,15 @@ namespace TransportControl.Controllers
             _trackListService = trackListService;
             _documentationService = documentationService;
         }
+        [HttpGet]
+        [SwaggerOperation(Summary = "Get all track list ")]
+        [SwaggerResponse(200, "Success", typeof(TrackListDto))]
+        [SwaggerResponse(404, "Track list not found")]
+        public async Task<IActionResult> GetAll()
+        {
+            var trackLists = await _trackListService.GetAllTrackListAsync();
+            return Ok(trackLists);
+        }
 
         [HttpGet("{id}")]
         [SwaggerOperation(Summary = "Get track list by ID")]
@@ -62,7 +71,7 @@ namespace TransportControl.Controllers
                 var trackList = await _trackListService.AddCarToTrackListAsync(dto);
                 return Ok(trackList);
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("Insurance"))
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -70,7 +79,7 @@ namespace TransportControl.Controllers
             {
                 return NotFound(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex.Message.Contains("Insurance"))
             {
                
                 return StatusCode(500, "Internal server error");
@@ -88,21 +97,21 @@ namespace TransportControl.Controllers
                 var trackList = await _trackListService.AddDriverToTrackListAsync(dto);
                 return Ok(trackList);
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("Category"))
+            catch (InvalidOperationException ex) 
             {
                 return BadRequest(ex.Message);
             }
-            catch (KeyNotFoundException ex)
+            catch (KeyNotFoundException ex) 
             {
                 return NotFound(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex.Message.Contains("Category"))
             {
 
                 return StatusCode(500, "Internal server error");
             }
         }
-        [HttpPut("/Close-list/")]
+        [HttpPut("/close-list/")]
         [SwaggerOperation(Summary = "Close list")]
         [SwaggerResponse(200, "List closed", typeof(TrackList))]
         [SwaggerResponse(400, "List not close")]
@@ -114,7 +123,7 @@ namespace TransportControl.Controllers
                 var trackList = await _trackListService.TrackListCloseAsync(dto);
                 return Ok(trackList);
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("Category"))
+            catch (InvalidOperationException ex) 
             {
                 return BadRequest(ex.Message);
             }
@@ -122,9 +131,8 @@ namespace TransportControl.Controllers
             {
                 return NotFound(ex.Message);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex.Message.Contains("Category"))
             {
-
                 return StatusCode(500, "Internal server error");
             }
         }

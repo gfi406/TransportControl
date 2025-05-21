@@ -13,6 +13,19 @@ namespace TransportControl.Service.Impl
         {
             _context = context;
         }
+        public async Task<List<DriverDto>> GetAllDriversAsync()
+        {
+            var drivers = await _context.Drivers.ToListAsync();
+            return drivers.Select(d => new DriverDto
+            {
+                Id = d.Id,
+                DriverName = d.DriverName,
+                DriverCategory = d.DriverCategory,
+                PersonnelNumber = d.PersonnelNumber
+            }).ToList();
+            
+            
+        }
 
         public async Task<DriverDto?> GetDriverByIdAsync(Guid id)
         {

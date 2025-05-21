@@ -1,5 +1,6 @@
 ﻿using TransportControl.Model.Entity;
 using TransportControl.Model.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace TransportControl.Service.Impl
 {
@@ -34,6 +35,13 @@ namespace TransportControl.Service.Impl
 
         public async Task<TrackPoint> CreateTrackPointAsync(CreateTrackPointDto dto)
         {
+            var trackListExists = await _context.TrackLists.AnyAsync(t => t.Id == dto.TrackListId);
+            if (!trackListExists)
+            {
+                throw new ArgumentException($"TrackList с ID {dto.TrackListId} не существует");
+            }
+
+            // 2. Создаем новую точку
             var trackPoint = new TrackPoint
             {
                 NumderPoint = dto.NumberPoint,

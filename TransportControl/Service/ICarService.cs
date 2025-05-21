@@ -5,6 +5,7 @@ namespace TransportControl.Service
 {
     public interface ICarService
     {
+        public Task<List<CarDto>> GetAllCarsAsync();
         public Task<CarDto?> GetCarByIdAsync(Guid id);
         public Task<Car> CreateCarAsync(CreateCarDto dto);
         public  Task<bool> UpdateCarAsync(Guid id, CarDto dto);
