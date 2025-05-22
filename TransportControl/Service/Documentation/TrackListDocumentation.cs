@@ -32,7 +32,7 @@ namespace TransportControl.Service.Documentation
                 worksheet.Cells["BP12"].Value = model.Car?.PersonnelNumber;
                 worksheet.Cells["S14"].Value = model.Driver?.PersonnelNumber;
                 worksheet.Cells["AE30"].Value = model.StartTime.ToString("HH:mm");
-                worksheet.Cells["AG35"].Value = model.EndTime.ToString("HH:mm");
+                worksheet.Cells["AG35"].Value = model.EndTime?.ToString("HH:mm");
 
                 worksheet.Cells["BU19"].Value = model.OdometrStart;
                 worksheet.Cells["BT45"].Value = model.OdometrEnd;

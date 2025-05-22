@@ -214,13 +214,20 @@ namespace TransportControl.Service.Impl
             trackList.RemainingFuelStart = dto.RemainingFuelStart;
             trackList.RemainingFuelEnd = dto.RemainingFuelEnd;
             trackList.StartTime = dto.StartTime;
-            trackList.EndTime = dto.EndTime;
+            trackList.EndTime = (DateTime)dto.EndTime;
             trackList.OdometrStart = dto.OdometrStart;
             trackList.OdometrEnd = dto.OdometrEnd;
             trackList.ValidityPeriodStart = dto.ValidityPeriodStart;
             trackList.ValidityPeriodEnd = dto.ValidityPeriodEnd;
-            trackList.CarId = dto.Car.Id;
-            trackList.DriverId = dto.Driver.Id;
+            if ( trackList.CarId != null)
+            {
+                trackList.CarId = dto.CarId;
+            }
+            if (trackList.DriverId != null)
+            {
+                trackList.DriverId = dto.DriverId;
+            }
+            
 
             await _context.SaveChangesAsync();
             return true;
