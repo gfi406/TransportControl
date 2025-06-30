@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Spire.Xls;
+using System.IO;
+using Spire.Pdf;
+using Spire.Pdf.Graphics;
 using TransportControl.Model.DTO;
 using TransportControl.Service.Impl;
 
 namespace TransportControl.Service.Documentation
 {
-    // Генератор Excel для путевого листа
+    
     public class TrackListExcelGenerator
     {
         public void FillExcelTemplate(string templatePath, string outputPath, TrackListDto model)
@@ -47,21 +50,21 @@ namespace TransportControl.Service.Documentation
                 worksheet.Cells["A22"].Value = "дистанции СЦБ Окт.Д.И.";
                 worksheet.Cells["R8"].Value = "ОАО 'РЖД' г.Москва ул. Новая Басманная, д.2 ";
 
-                
+
                 var routeWorksheet = package.Workbook.Worksheets[1];
-                int row = 5; 
+                int row = 5;
 
                 foreach (var point in model.TrackPoints ?? Enumerable.Empty<TrackPointDto>())
                 {
-                    routeWorksheet.Cells[row, 2].Value = point.NumberPoint; 
-                    routeWorksheet.Cells[row, 3].Value = point.CustomerCode; 
-                    routeWorksheet.Cells[row, 5].Value = point.StartPointName; 
-                    routeWorksheet.Cells[row, 8].Value = point.EndPointName; 
-                    routeWorksheet.Cells[row, 10].Value = point.StartPointTime?.ToString("HH"); 
-                    routeWorksheet.Cells[row, 12].Value = point.StartPointTime?.ToString("mm"); 
-                    routeWorksheet.Cells[row, 13].Value = point.EndPointTime?.ToString("HH"); 
-                    routeWorksheet.Cells[row, 14].Value = point.EndPointTime?.ToString("mm"); 
-                    routeWorksheet.Cells[row, 15].Value = point.DistanceTraveled; 
+                    routeWorksheet.Cells[row, 2].Value = point.NumberPoint;
+                    routeWorksheet.Cells[row, 3].Value = point.CustomerCode;
+                    routeWorksheet.Cells[row, 5].Value = point.StartPointName;
+                    routeWorksheet.Cells[row, 8].Value = point.EndPointName;
+                    routeWorksheet.Cells[row, 10].Value = point.StartPointTime?.ToString("HH");
+                    routeWorksheet.Cells[row, 12].Value = point.StartPointTime?.ToString("mm");
+                    routeWorksheet.Cells[row, 13].Value = point.EndPointTime?.ToString("HH");
+                    routeWorksheet.Cells[row, 14].Value = point.EndPointTime?.ToString("mm");
+                    routeWorksheet.Cells[row, 15].Value = point.DistanceTraveled;
 
                     row++;
                     if (row > 25) break;
@@ -72,7 +75,7 @@ namespace TransportControl.Service.Documentation
         }
     }
 
-   
+
     public static class ExcelToPdfConverter
     {
         public static void ConvertExcelToPdf(string excelPath, string pdfPath)
@@ -89,100 +92,102 @@ namespace TransportControl.Service.Documentation
                 sheet.PageSetup.FitToPagesTall = 1;
             }
 
-            workbook.SaveToFile(pdfPath, FileFormat.PDF);
+            workbook.SaveToFile(pdfPath, Spire.Xls.FileFormat.PDF);
         }
     }
+   
 
     public class TrackListDocumentation
-    {
-        private readonly ITrackListService _trackListService;
-        private readonly TrackListExcelGenerator _excelGenerator;
-
-        public TrackListDocumentation(
-            ITrackListService trackListService,
-            TrackListExcelGenerator excelGenerator)
         {
-            _trackListService = trackListService;
-            _excelGenerator = excelGenerator;
-        }
+            private readonly ITrackListService _trackListService;
+            private readonly TrackListExcelGenerator _excelGenerator;
 
-        public async Task GenerateTrackListDocumentationAsync(
-            Guid trackListId,
-            string templatePath,
-            string outputExcelPath,
-            string outputPdfPath)
-        {
-            var trackListDto = await _trackListService.GetTrackListByIdAsync(trackListId);
-
-            if (trackListDto == null)
+            public TrackListDocumentation(
+                ITrackListService trackListService,
+                TrackListExcelGenerator excelGenerator)
             {
-                throw new InvalidOperationException($"Путевой лист с ID {trackListId} не найден.");
+                _trackListService = trackListService;
+                _excelGenerator = excelGenerator;
             }
 
-            _excelGenerator.FillExcelTemplate(templatePath, outputExcelPath, trackListDto);
-
-            ExcelToPdfConverter.ConvertExcelToPdf(outputExcelPath, outputPdfPath);
-        }
-    }
-
-    public class TrackListDocumentationGenerator
-    {
-        private readonly IServiceProvider _serviceProvider;
-
-        public TrackListDocumentationGenerator(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
-        public async Task GenerateDocumentationFromJsonAsync(
-            string jsonFilePath,
-            string templatePath,
-            string outputExcelPath,
-            string outputPdfPath)
-        {
-            var json = await File.ReadAllTextAsync(jsonFilePath, Encoding.UTF8);
-            var options = new JsonSerializerOptions
+            public async Task GenerateTrackListDocumentationAsync(
+                Guid trackListId,
+                string templatePath,
+                string outputExcelPath,
+                string outputPdfPath)
             {
-                PropertyNameCaseInsensitive = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
+                var trackListDto = await _trackListService.GetTrackListByIdAsync(trackListId);
 
-            var model = JsonSerializer.Deserialize<CreateTrackListDto>(json, options);
+                if (trackListDto == null)
+                {
+                    throw new InvalidOperationException($"Путевой лист с ID {trackListId} не найден.");
+                }
 
-            if (model == null)
+                _excelGenerator.FillExcelTemplate(templatePath, outputExcelPath, trackListDto);
+
+                ExcelToPdfConverter.ConvertExcelToPdf(outputExcelPath, outputPdfPath);
+            }
+        }
+
+        public class TrackListDocumentationGenerator
+        {
+            private readonly IServiceProvider _serviceProvider;
+
+            public TrackListDocumentationGenerator(IServiceProvider serviceProvider)
             {
-                throw new InvalidOperationException("Не удалось десериализовать путевой лист из JSON");
+                _serviceProvider = serviceProvider;
             }
 
-            using var scope = _serviceProvider.CreateScope();
-            var trackListService = scope.ServiceProvider.GetRequiredService<TrackListService>();
-            var documentationService = scope.ServiceProvider.GetRequiredService<TrackListDocumentation>();
+            public async Task GenerateDocumentationFromJsonAsync(
+                string jsonFilePath,
+                string templatePath,
+                string outputExcelPath,
+                string outputPdfPath)
+            {
+                var json = await File.ReadAllTextAsync(jsonFilePath, Encoding.UTF8);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
 
-            var createdTrackList = await trackListService.CreateTrackListAsync(model);
+                var model = JsonSerializer.Deserialize<CreateTrackListDto>(json, options);
 
-            await documentationService.GenerateTrackListDocumentationAsync(
-                createdTrackList.Id,
-                templatePath,
-                outputExcelPath,
-                outputPdfPath
-            );
+                if (model == null)
+                {
+                    throw new InvalidOperationException("Не удалось десериализовать путевой лист из JSON");
+                }
+
+                using var scope = _serviceProvider.CreateScope();
+                var trackListService = scope.ServiceProvider.GetRequiredService<TrackListService>();
+                var documentationService = scope.ServiceProvider.GetRequiredService<TrackListDocumentation>();
+
+                var createdTrackList = await trackListService.CreateTrackListAsync(model);
+
+                await documentationService.GenerateTrackListDocumentationAsync(
+                    createdTrackList.Id,
+                    templatePath,
+                    outputExcelPath,
+                    outputPdfPath
+                );
+            }
+
+            public async Task GenerateDocumentationForExistingTrackListAsync(
+                Guid trackListId,
+                string templatePath,
+                string outputExcelPath,
+                string outputPdfPath)
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var documentationService = scope.ServiceProvider.GetRequiredService<TrackListDocumentation>();
+
+                await documentationService.GenerateTrackListDocumentationAsync(
+                    trackListId,
+                    templatePath,
+                    outputExcelPath,
+                    outputPdfPath
+                );
+            }
         }
-
-        public async Task GenerateDocumentationForExistingTrackListAsync(
-            Guid trackListId,
-            string templatePath,
-            string outputExcelPath,
-            string outputPdfPath)
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var documentationService = scope.ServiceProvider.GetRequiredService<TrackListDocumentation>();
-
-            await documentationService.GenerateTrackListDocumentationAsync(
-                trackListId,
-                templatePath,
-                outputExcelPath,
-                outputPdfPath
-            );
-        }
-    }
+    
 }
